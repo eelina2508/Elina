@@ -11,7 +11,10 @@
 
 // задание принял
 
+
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Scanner;
 
 class Worker
 {
@@ -49,15 +52,34 @@ class Worker
             System.out.println("brak: "+ratingorbrak);
     }
 }
+
+class ComparatorBrak implements Comparator<Worker> {  // компаратор для того чтобы сортировать брак по убыванию
+
+    public int compare(Worker a, Worker b){
+
+        if (a.ratingorbrak>b.ratingorbrak)    // тут получается если брак чувака а больше брака чувака б, то при сортировки чувак а должен идти раньше чувака б
+            return -1;
+        if (a.ratingorbrak<b.ratingorbrak)    // тут чувак а должен идти позже чувака б
+            return 1;
+        return 0;   // если браки одинаковые то без разницы кто раньше кто позже
+    }
+}
 public class Main {
-    public static void main(String[] args) {
-        Worker w1 = new Worker(1,"Иванов Иван Иваныч", "руководитель", 50, 100000,20,30,20);
-        Worker w2 = new Worker(1,"Иванов Иван Иваныч2", "неруководитель", 40, 90000,10,8,8);
-        Worker w3 = new Worker(1,"Иванов Иван Иваныч3", "неруководитель", 70, 80000,10,20,14);
-        Worker w4 = new Worker(1,"Иванов Иван Иваныч4", "неруководитель", 55, 70000,10,15,10);
-        Worker w5 = new Worker(1,"Иванов Иван Иваныч5", "неруководитель", 60, 60000,10,17,16);
-        Worker w6 = new Worker(1,"Иванов Иван Иваныч6", "неруководитель", 20, 50000,10,10,15);
-        Worker w7 = new Worker(1,"Иванов Иван Иваныч7", "неруководитель", 30, 40000,10,13,9);
+    public static void Display(ArrayList<Worker> workers)
+    {
+        for (int i = 0; i<workers.size(); i++) {
+            workers.get(i).Display();
+            System.out.println();
+        }
+    }
+    public static void main(String[] args) throws MyException {
+        Worker w1 = new Worker(1, "Иванов Иван Иваныч", "руководитель", 50, 100000, 20, 30, 20);
+        Worker w2 = new Worker(2, "Иванов Иван Иваныч2", "исполнитель", 40, 90000, 10, 8, 8);
+        Worker w3 = new Worker(3, "Иванов Иван Иваныч3", "исполнитель", 70, 80000, 26, 20, 14);
+        Worker w4 = new Worker(4, "Иванов Иван Иваныч4", "исполнитель", 55, 70000, 27, 15, 10);
+        Worker w5 = new Worker(5, "Иванов Иван Иваныч5", "исполнитель", 61, 60000, 3, 17, 16);
+        Worker w6 = new Worker(6, "Иванов Иван Иваныч6", "исполнитель", 20, 50000, 1, 10, 15);
+        Worker w7 = new Worker(7, "Иванов Иван Иваныч7", "исполнитель", 30, 40000, 15, 13, 9);
 
         ArrayList<Worker> workers = new ArrayList<>();
         workers.add(w1);
@@ -68,6 +90,68 @@ public class Main {
         workers.add(w6);
         workers.add(w7);
 
+        Display(workers);
 
+        // 1) тех у кого стаж р более 25 лет премируют увеличением отпуска на 5 дней
+        for (int i = 0; i < workers.size(); i++)
+            if (workers.get(i).staj > 25)
+                workers.get(i).otpusk += 5;
+        Display(workers);
+
+        //2) первых 5 чел с наибольшим процентом брака штрафуют уменьшением оклада на 10 процентов
+
+        ArrayList<Worker> firstfive = new ArrayList<>();
+        for (int i = 0; i < workers.size(); i++)
+            if (workers.get(i).doljn.equals("исполнитель"))
+                firstfive.add(workers.get(i));
+
+        ComparatorBrak cmp = new ComparatorBrak();
+        firstfive.sort(cmp);
+        for (int i = 0; i < workers.size(); i++)
+            for (int j = 0; j < 5; j++) {
+                if (firstfive.get(j).equals(workers.get(i))) {
+                    workers.get(i).oklad *= 0.9;
+                    break;
+                }
+            }
+        Display(workers);
+
+        //3)поступает еще 1 чел вводом. заносят все данные на него. включают в списки.если чел старше 60 лет или моложе 25,то
+        // выбрасывают искл (слишком старый/слишком молодой)
+
+        Scanner sc = new Scanner(System.in);
+        int index = sc.nextInt();
+        String fio = sc.next();
+        String doljn = sc.next();
+        int vozrast = sc.nextInt();
+        double oklad = sc.nextDouble();
+        int staj = sc.nextInt();
+        int otpusk = sc.nextInt();
+        int ratingorbrak = sc.nextInt();
+
+        Worker w = new Worker(index, fio, doljn, vozrast, oklad, staj, otpusk, ratingorbrak);
+        workers.add(w);
+        if (vozrast < 25 || vozrast > 60)
+            throw new MyException(vozrast);
+        Display(workers);
+        //4) увольняют (отправл на пенсию сотр) старше 60 лет
+
+        for (int i = 0; i < workers.size(); i++)
+            if (workers.get(i).vozrast > 60) {
+                workers.remove(i);
+                i--;
+            }
+        Display(workers);
+    }
+}
+
+class MyException extends Exception // класс со своим исключением
+{
+    public MyException(int age)
+    {
+        if (age<25)
+            System.out.println("Сотрудник слишком молод");
+        if (age>60)
+            System.out.println("Сотрудник слишком стар");
     }
 }
